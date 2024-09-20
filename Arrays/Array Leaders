@@ -1,0 +1,28 @@
+class Solution {
+  public:
+    vector<int> leaders(int n, int arr[]) {
+        stack<int> s;
+        vector<int> solution;
+
+        for (int i = 0; i < n; i++) {
+            bool isLeader = true;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[i] < arr[j]) {
+                    isLeader = false;
+                    break;  // Exit the inner loop since we found a greater element
+                }
+            }
+            if (isLeader) {
+                solution.push_back(arr[i]);
+            }
+        }
+
+        
+        // while (!s.empty()) {
+        //     solution.push_back(s.top());
+        //     s.pop();
+        // }
+
+        return solution;
+    }
+};
