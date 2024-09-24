@@ -1,25 +1,31 @@
 #include<bits/stdc++.h>
 using namespace std;
 int main()
-{
-    string s;
-    cin >> s;
+{   
+    int n;
+    cin>>n;
+    vector<int> burles;
 
-    // Convert the string to lowercase
-    for (char &c : s) {
-        c = tolower(c);
+    for(int i=0;i<n;i++){
+        int temp;
+        cin>>temp;
+        burles.push_back(temp);
     }
 
-    int len = s.length();
+    int sum=0;
 
-    for (int i = 0; i < len; i++) {
-        if (s[i] == 'a' || s[i] == 'e' || s[i] == 'i' || s[i] == 'o' || s[i] == 'u') {
-            cout << s[i] <<"YES"<< endl;
-            return 0;
-        }
+    int maxi=*max_element(burles.begin(),burles.end());
+
+    for(int i=0;i<n;i++){
+        sum+=maxi-burles[i];
     }
 
-            cout << s[i] <<"NO"<< endl;
+    cout<<sum;
+
+
+
+
+
 
     return 0;
 }
