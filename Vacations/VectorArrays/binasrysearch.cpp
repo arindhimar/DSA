@@ -7,29 +7,26 @@ void display(vector<int> &temp){
     }
 }
 
-void searchInsertPosition(vector<int> &temp,int n){
-    int toInsert ;
-    cout<<"To insert";
-    cin>>toInsert;
-
-    int ans=n,mind;
-    int low=0,high=n-1;
+void binarySearch(vector<int> &temp,int target){
+    int n = temp.size();
+    int low = 0,high = n-1;
 
     while(low<=high){
         int mid = (low+high)/2;
 
-        if(temp[mid]>=toInsert){
-            ans = mid;
+
+        if(temp[mid]==target){
+            cout<<"Index "<<mid;
+            return;
+        }
+        else if(temp[mid]>target){
             high = mid-1;
         }
-        else{
+        else {
             low = mid+1;
         }
-
     }
-
-    cout<<ans;
-    
+    cout<<"Not Found!!";
 }
 
 int main()
@@ -46,9 +43,16 @@ int main()
     }
 
 
+    int target;
+
+    cout<<"Target :";
+    cin>>target;
+
     sort(temp.begin(),temp.end());
 
-    searchInsertPosition(temp,n);
+    // display(temp);
+
+    binarySearch(temp,target);
     
 
     return 0;

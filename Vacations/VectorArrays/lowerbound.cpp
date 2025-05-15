@@ -7,29 +7,22 @@ void display(vector<int> &temp){
     }
 }
 
-void searchInsertPosition(vector<int> &temp,int n){
-    int toInsert ;
-    cout<<"To insert";
-    cin>>toInsert;
-
-    int ans=n,mind;
-    int low=0,high=n-1;
-
+void lowerbound(vector<int> &temp,int target){
+    int low  = 0,n=temp.size(),high=n-1;
+    int lb;
     while(low<=high){
-        int mid = (low+high)/2;
+        int mid= (low+high)/2;
 
-        if(temp[mid]>=toInsert){
-            ans = mid;
-            high = mid-1;
+        if(temp[mid]>target){//may be this one is lb
+            lb = mid;
+            high=mid-1;
         }
         else{
             low = mid+1;
         }
-
     }
 
-    cout<<ans;
-    
+    cout<<lb;
 }
 
 int main()
@@ -46,9 +39,6 @@ int main()
     }
 
 
-    sort(temp.begin(),temp.end());
-
-    searchInsertPosition(temp,n);
     
 
     return 0;
