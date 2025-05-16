@@ -28,3 +28,8 @@ GROUP BY
     p.project_id;
 
 
+
+select (SELECT DISTINCT salary 
+FROM employee 
+ORDER BY salary DESC 
+LIMIT 1 OFFSET 1) as SecondHighestSalary;
