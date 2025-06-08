@@ -1,0 +1,555 @@
+
+==1==
+CREATE TABLE BillDetails (
+    BillNo number,
+    ItemCode VARCHAR(20), 
+    Price number, 
+    Qty INTEGER,
+    Sum number  
+);
+
+
+create or replace trigger autosum
+before insert or update on BillDetails
+for each row
+begin
+:new.Sum:=:new.Price*:new.Qty;
+end
+
+INSERT INTO BillDetails (BillNo, ItemCode, Price, Qty) VALUES (1, 'Item1', 10, 3);
+INSERT INTO BillDetails (BillNo, ItemCode, Price, Qty) VALUES (2, 'Item2', 25, 4);
+SELECT * FROM BillDetails;
+
+
+==2==
+CREATE TABLE MarkTable (
+    Student_RollNumber NUMBER,
+    Sub1 NUMBER,
+    Sub2 NUMBER,
+    Sub3 NUMBER,
+    Percentage NUMBER(5, 2),
+    Grade varchar(30) 
+);
+
+create or replace trigger automarks  
+before insert or update on MarkTable
+for each row
+begin
+:new.Percentage:=new.Sub1+:new.Sub2+:new.Sub3;
+if :new.Percentage>=70 then
+	:new.Grade='Distinction';
+elsif :new.Grade>=50 then
+	:new.Grade='First';
+elsif :new.Grade>=40 then
+	:new.Grade='Second';
+else 
+	:new.Grade='Fail';
+end if;
+end
+
+BEGIN
+INSERT INTO MarkTable (Student_RollNumber, Sub1, Sub2, Sub3) VALUES (5, 85, 75, 92);
+
+INSERT INTO MarkTable (Student_RollNumber, Sub1, Sub2, Sub3) VALUES (6, 60, 65, 78);
+
+INSERT INTO MarkTable (Student_RollNumber, Sub1, Sub2, Sub3) VALUES (3, 40, 45, 50);
+
+INSERT INTO MarkTable (Student_RollNumber, Sub1, Sub2, Sub3) VALUES (4, 30, 25, 35);
+END
+
+SELECT * FROM MarkTable;
+
+
+==3==
+CREATE TABLE Bill (
+    BillNo NUMBER,
+    BillDate DATE,
+    BillAmount NUMBER(10, 2),  -- Assuming you want a decimal number with 2 decimal places for BillAmount
+    Discount NUMBER(10, 2),    -- Assuming you want a decimal number with 2 decimal places for Discount
+    NetPayment NUMBER(10, 2)   -- Assuming you want a decimal number with 2 decimal places for NetPayment
+);
+
+create or replace trigger calamount
+before insert or update on Bill
+for each row
+begin
+ if :new.BillAmount > 10000 then
+	:new.Discount:=20;
+elsif :new.BillAmount > 1000 then
+	:new.Discount:=10;
+else
+	:new.Discount:=5; 
+end if;
+	:new.NetPayment:=:new.BillAmount+(:new.BillAmount+:new.BillAmount*:new.Discount/100);
+end
+
+BEGIN
+
+INSERT INTO Bill (BillNo, BillDate, BillAmount) VALUES (1, TO_DATE('2023-09-28', 'YYYY-MM-DD'), 12000);
+
+
+INSERT INTO Bill (BillNo, BillDate, BillAmount) VALUES (2, TO_DATE('2023-09-29', 'YYYY-MM-DD'), 5000);
+
+
+SELECT * FROM Bill;
+
+==4===
+
+CREATE TABLE CityMaster1 (
+    CityCode NUMBER,
+    CityName VARCHAR2(255),
+    CityCategory VARCHAR2(1) CHECK (CityCategory IN ('A', 'B', 'C'))
+);
+
+CREATE TABLE EmployeeMaster (
+    EmpCode NUMBER,
+    EmpName VARCHAR2(255),
+    EmpAge NUMBER,
+    CityCode NUMBER,
+    BASIC NUMBER,
+    HRA NUMBER,
+    DA NUMBER,
+    GROSS NUMBER
+);
+
+INSERT INTO CityMaster1 (CityCode, CityName, CityCategory) VALUES (1, 'City A', 'A');
+
+INSERT INTO CityMaster1 (CityCode, CityName, CityCategory) VALUES (2, 'City B', 'B');
+
+INSERT INTO CityMaster1 (CityCode, CityName, CityCategory) VALUES (3, 'City C', 'C');
+
+INSERT INTO CityMaster1 (CityCode, CityName, CityCategory) VALUES (4, 'City D', 'A');
+
+SELECT * FROM CityMaster1;
+
+
+create or replace trigger q4
+before insert or update on EmployeeMaster
+for each row
+declare
+temp_grade varchar(20);
+begin
+	:new.DA:=42*:new.Basic;
+	
+	select CityCategory into temp_grade from CityMaster1 where CityCode=:new.CityCode;
+	if temp_grade = 'A' then
+		:new.HRA:=10*:new.Basic;
+	elsif temp_grade = 'B' then
+		:new.HRA:=15*:new.Basic;
+	elsif temp_grade = 'C' then
+		:new.HRA:=20*:new.Basic;
+end if;
+	:new.GROSS:=:new.BASIC+:new.HRA+:new.DA;	
+end
+
+BEGIN
+
+INSERT INTO EmployeeMaster (EmpCode, EmpName, EmpAge, CityCode, Basic) VALUES (1, 'John', 30, 1, 5000);
+
+
+INSERT INTO EmployeeMaster (EmpCode, EmpName, EmpAge, CityCode, Basic) VALUES (2, 'Jane', 28, 2, 6000);
+
+
+INSERT INTO EmployeeMaster (EmpCode, EmpName, EmpAge, CityCode, Basic) VALUES (3, 'Bob', 35, 3, 7000);
+
+
+INSERT INTO EmployeeMaster (EmpCode, EmpName, EmpAge, CityCode, Basic) VALUES (4, 'Alice', 32, 4, 5500);
+
+END
+
+SELECT * FROM EmployeeMaster;
+
+
+
+==5==
+
+CREATE TABLE CategoryMaster5 (
+    CategoryID NUMBER,
+    CategoryName VARCHAR2(255)
+);
+
+
+CREATE TABLE ItemMaster5 (
+    ItemCode NUMBER,
+    ItemName VARCHAR2(255),
+    ItemPrice NUMBER,
+    ItemQTY NUMBER,
+    CategoryID NUMBER
+);
+
+
+
+create or replace trigger q5
+before delete on CategoryMaster5
+for each row
+begin
+	delete from ItemMaster5 where CategoryId=:old.CategoryId;
+end
+
+BEGIN
+
+INSERT INTO CategoryMaster5 (CategoryID, CategoryName) VALUES (1, 'Category A');
+INSERT INTO CategoryMaster5 (CategoryID, CategoryName) VALUES (2, 'Category B');
+
+
+
+INSERT INTO ItemMaster5 (ItemCode, ItemName, ItemPrice, ItemQTY, CategoryID) VALUES (101, 'Item 1', 10.00, 100, 1);
+INSERT INTO ItemMaster5 (ItemCode, ItemName, ItemPrice, ItemQTY, CategoryID) VALUES (102, 'Item 2', 15.00, 150, 1);
+INSERT INTO ItemMaster5 (ItemCode, ItemName, ItemPrice, ItemQTY, CategoryID) VALUES (103, 'Item 3', 20.00, 200, 2);
+
+END
+
+SELECT * FROM CategoryMaster;
+SELECT * FROM ItemMaster;
+
+
+DELETE FROM CategoryMaster WHERE CategoryID = 1;
+
+
+SELECT * FROM ItemMaster;
+
+
+==6==
+
+CREATE TABLE BillMaster6 (
+    SrNo NUMBER,
+    BillDate DATE,
+    CustomerCode NUMBER,
+    BillNo NUMBER,
+    BillAmount NUMBER
+);
+
+begin
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-20', 'YYYY-MM-DD'), 101, 50.00);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-21', 'YYYY-MM-DD'), 102, 75.50);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-22', 'YYYY-MM-DD'), 101, 30.25);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-23', 'YYYY-MM-DD'), 103, 45.75);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-24', 'YYYY-MM-DD'), 102, 60.00);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-25', 'YYYY-MM-DD'), 101, 42.30);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-26', 'YYYY-MM-DD'), 103, 55.25);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-27', 'YYYY-MM-DD'), 102, 48.75);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-28', 'YYYY-MM-DD'), 101, 37.50);
+INSERT INTO BillMaster6 (BillDate, CustomerCode, BillAmount) VALUES
+  (TO_DATE('2023-09-29', 'YYYY-MM-DD'), 103, 65.00);
+
+end
+
+
+
+create or replace function q6
+(idate date,fdate date,temp_code number)
+return number
+as
+temp_amt number;
+begin
+select sum(BillAmount) into temp_amt from BillMaster6 where BillDate>=idate and BillDate<=fdate and CustomerCode = temp_code;
+return temp_amt;
+end
+
+declare
+temp_amt number;
+begin
+temp_amt:=q6('20-sep-2023','29-sep-2023',101);
+dbms_output.put_line('Amount : '||temp_amt);
+end
+
+
+
+==q7==
+CREATE TABLE BillMaster7(
+  SrNo NUMBER,
+  BillDate DATE,
+  CustomerCode NUMBER,
+  BillNo NUMBER,
+  BillAmount NUMBER,
+  AmountPaid NUMBER
+);
+
+create or replace function q7
+(idate date,fdate date)
+return number
+as temp_amt number;
+begin
+select sum(BillAmount) into temp_amt from BillMaster7 where BillDate>=idate and BillDate<=fdate;
+return temp_amt;
+end;
+
+begin
+INSERT INTO BillMaster7 (SrNo, BillDate, CustomerCode, BillNo, BillAmount, AmountPaid)
+VALUES
+  (1, TO_DATE('2023-09-15', 'YYYY-MM-DD'), 101, 1001, 150.00, 50.00);
+INSERT INTO BillMaster7 (SrNo, BillDate, CustomerCode, BillNo, BillAmount, AmountPaid)
+VALUES
+  (2, TO_DATE('2023-09-20', 'YYYY-MM-DD'), 102, 1002, 200.00, 100.00);
+INSERT INTO BillMaster7 (SrNo, BillDate, CustomerCode, BillNo, BillAmount, AmountPaid)
+VALUES
+  (3, TO_DATE('2023-09-25', 'YYYY-MM-DD'), 101, 1003, 75.00, 0.00);
+INSERT INTO BillMaster7 (SrNo, BillDate, CustomerCode, BillNo, BillAmount, AmountPaid)
+VALUES
+  (4, TO_DATE('2023-09-30', 'YYYY-MM-DD'), 103, 1004, 120.00, 60.00);
+end
+
+declare
+temp_amt number;
+begin
+temp_amt:=q7('15-sep-2023','15-sep-2023');
+dbms_output.put_line('Amount : '||temp_amt);
+end
+
+
+==8==
+
+CREATE TABLE CityMaster8 (
+    CityCode NUMBER,
+    CityName VARCHAR2(255)
+);
+
+CREATE TABLE StudentMaster8(
+StudentID NUMBER,
+StudentFirstName VARCHAR(255),
+StudentLastName VARCHAR(255),
+StudentCategory VARCHAR(255),
+BirthDate DATE,
+SemesterNo NUMBER,
+CityCode NUMBER
+);
+
+
+CREATE OR REPLACE PROCEDURE q8a(temp_cat VARCHAR2, temp_count OUT NUMBER)
+AS
+BEGIN
+  SELECT COUNT(*) INTO temp_count
+  FROM StudentMaster8
+  WHERE StudentCategory = temp_cat;
+END;
+
+declare
+temp_count number
+begin
+q8a('',temp_count)
+dbms_output.put_line('Count : '||temp_count);
+end
+
+begin
+INSERT INTO CityMaster8 (CityCode, CityName) VALUES (1, 'New York');
+INSERT INTO CityMaster8 (CityCode, CityName) VALUES (2, 'Los Angeles');
+INSERT INTO CityMaster8 (CityCode, CityName) VALUES (3, 'Chicago');
+INSERT INTO CityMaster8 (CityCode, CityName) VALUES (4, 'Houston');
+INSERT INTO CityMaster8 (CityCode, CityName) VALUES (5, 'San Francisco');
+
+
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (1, 'ARIN', 'DHIMAR', 'SEBC', TO_DATE('2000-03-15', 'YYYY-MM-DD'), 1, 1);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (2, 'AVINASH', 'DHIMAR', 'SC', TO_DATE('1999-07-20', 'YYYY-MM-DD'), 2, 2);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (3, 'VASU', 'BHUVA', 'General', TO_DATE('2001-01-10', 'YYYY-MM-DD'), 3, 3);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (4, 'SNEHA', 'VIRANI', 'SEBC', TO_DATE('2002-05-03', 'YYYY-MM-DD'), 4, 4);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (5, 'ABC', 'EFG', 'SC', TO_DATE('1998-09-28', 'YYYY-MM-DD'), 5, 5);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (6, 'LMN', 'HIJ', 'SEBC', TO_DATE('1999-11-14', 'YYYY-MM-DD'), 6, 1);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (7, 'OPQ', 'RST', 'General', TO_DATE('2003-02-22', 'YYYY-MM-DD'), 1, 2);
+INSERT INTO StudentMaster8 (StudentID, StudentFirstName, StudentLastName, StudentCategory, BirthDate, SemesterNo, CityCode) VALUES (8, 'XYZ', 'UVW', 'SC', TO_DATE('2000-08-05', 'YYYY-MM-DD'), 2, 3);
+end
+
+declare 
+temp_count number;
+begin
+q8a('SEBC',temp_count);
+dbms_output.put_line('count : '||temp_count);
+end
+
+CREATE OR REPLACE PROCEDURE q8b(temp_lname VARCHAR2, temp_count OUT NUMBER)
+AS
+BEGIN
+  SELECT COUNT(*) INTO temp_count
+  FROM StudentMaster8
+  WHERE StudentLastName = temp_lname;
+END;
+
+declare 
+temp_count number;
+begin
+q8b('DHIMAR',temp_count);
+dbms_output.put_line('count : '||temp_count);
+end
+
+
+
+==9==
+CREATE TABLE ItemMaster9 (
+    SrNo NUMBER,
+    ItemCode NUMBER,
+    ItemName VARCHAR2(255),
+    ItemPrice NUMBER,
+    QTYOnHand NUMBER
+);
+
+
+create or replace function q9
+return varchar2
+as
+temp varchar2(255);
+begin
+select ItemName into temp from ItemMaster9 where ItemCode in (select ItemCode from ItemMaster9 where QTYOnHand in (select max(QTYOnHand) from ItemMaster9));
+return temp;
+end
+
+DECLARE
+  temp VARCHAR2(255);
+BEGIN
+  temp := q9();
+  DBMS_OUTPUT.PUT_LINE('Result: ' || temp);
+END;
+
+
+begin
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (1, 101, 'Item1', 10.99, 50);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (2, 102, 'Item2', 8.49, 75);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (3, 103, 'Item3', 15.99, 30);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (4, 104, 'Item4', 12.25, 45);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (5, 105, 'Item5', 9.99, 60);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (6, 106, 'Item6', 11.75, 42);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (7, 107, 'Item7', 7.99, 55);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (8, 108, 'Item8', 14.50, 48);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (9, 109, 'Item9', 10.00, 37);
+INSERT INTO ItemMaster9 (SrNo, ItemCode, ItemName, ItemPrice, QTYOnHand) VALUES (10, 110, 'Item10', 13.75, 65);
+end
+
+
+
+
+==10==
+
+CREATE TABLE HotelMaster10(
+    HotelCode NUMBER PRIMARY KEY,
+    HotelName VARCHAR2(255),
+    HotelRatingID NUMBER,
+    Telephone VARCHAR2(20),
+    CityCode NUMBER,
+    Address VARCHAR2(255),
+    Website VARCHAR2(255)
+);
+
+
+CREATE TABLE CityMaster10 (
+    CityCode NUMBER PRIMARY KEY,
+    CityName VARCHAR2(255)
+);
+
+CREATE TABLE HotelRatingMaster10 (
+    HotelRatingID NUMBER PRIMARY KEY,
+    HotelRatingName VARCHAR2(50)
+);
+
+
+create or replace procedure q10
+(temp_cname CityMaster10.CityName%type, temp_hrating HotelRatingMaster10.HotelRatingName%type)
+as
+cursor temp_cur is select * from HotelMaster10 where HotelRatingID in (select HotelRatingID from HotelRatingMaster10 where HotelRatingName= temp_hrating) and  CityCode in (select CityCode from CityMaster10 where CityName = temp_cname );
+begin
+for data in temp_cur loop
+dbms_output.put_line('Name : '||data.HotelName );
+end loop;
+end;
+
+
+
+==11==
+
+CREATE TABLE DealerMaster11 (
+    DealerCode NUMBER PRIMARY KEY,
+    Year NUMBER,
+    DealerName VARCHAR2(255),
+    Month NUMBER,
+    CityCode NUMBER,
+    Address VARCHAR2(255),
+    Telephone VARCHAR2(20),
+    Mobile VARCHAR2(20)
+);
+
+
+CREATE TABLE SalesInformation11 (
+    DealerCode NUMBER,
+    Year NUMBER,
+    SalesAmount NUMBER
+);
+
+
+CREATE TABLE CityMaster11 (
+    CityCode NUMBER PRIMARY KEY,
+    CityName VARCHAR2(255)
+);
+
+BEGIN
+
+INSERT INTO CityMaster11 (CityCode, CityName)
+VALUES (1, 'Surat');
+
+
+INSERT INTO DealerMaster11 (DealerCode, Year, DealerName, Month, CityCode, Address, Telephone, Mobile)
+VALUES (1, 2010, 'Dealer 1', 1, 1, 'Address 1', '1234567890', '9876543210');
+
+
+INSERT INTO SalesInformation11 (DealerCode, Year, SalesAmount)
+VALUES (1, 2010, 50000);
+
+END
+
+CREATE OR REPLACE PROCEDURE q11a(
+    pCityName IN VARCHAR2,
+    pYear IN NUMBER,
+    pSalesTotal OUT NUMBER
+) AS
+BEGIN
+    SELECT SUM(si.SalesAmount)
+    INTO pSalesTotal
+    FROM SalesInformation11 si
+    JOIN DealerMaster11 dm ON si.DealerCode = dm.DealerCode
+    JOIN CityMaster11 cm ON dm.CityCode = cm.CityCode
+    WHERE cm.CityName = pCityName AND si.Year = pYear;
+END q11a;
+
+DECLARE
+    vSalesTotal NUMBER;
+BEGIN
+    q11a('Surat', 2010, vSalesTotal);
+    DBMS_OUTPUT.PUT_LINE('Total Sales in Surat in 2010: ' || vSalesTotal);
+END;
+
+CREATE OR REPLACE PROCEDURE GetDealersByCityAndYear (
+    pCityName IN VARCHAR2,
+    pYear IN NUMBER,
+    temp_name OUT VARCHAR2
+) AS
+BEGIN
+    SELECT DealerName INTO temp_name
+    FROM DealerMaster11
+    WHERE DealerCode IN (
+        SELECT DealerCode
+        FROM SalesInformation11
+        WHERE SalesAmount = (SELECT MAX(SalesAmount) FROM SalesInformation11 WHERE Year = pYear)
+        AND Year = pYear
+    )
+    AND CityCode = (SELECT CityCode FROM CityMaster11 WHERE CityName = pCityName);
+END GetDealersByCityAndYear;
+
+
+DECLARE
+    vCityName VARCHAR2(255) := 'Surat'; 
+    vYear NUMBER := 2010; 
+    vDealerName VARCHAR2(255);
+BEGIN
+    GetDealersByCityAndYear(vCityName, vYear, vDealerName);
+   
+    DBMS_OUTPUT.PUT_LINE('Top Dealer in ' || vCityName || ' for Year ' || vYear || ': ' || vDealerName);
+END;
+/
+
+
+

@@ -1,0 +1,256 @@
+
+
+CREATE TABLE STUDENTRESULTS (
+    STUDENTID NUMBER,
+    SEMESTER NUMBER,
+    SUB1 NUMBER,
+    SUB2 NUMBER,
+    SUB3 NUMBER,
+    SUB4 NUMBER,
+    SUB5 NUMBER,
+    PERCENTAGE NUMBER,
+    GRADE VARCHAR(30),
+    COURSEID NUMBER
+);
+
+CREATE TABLE COURSE(
+COURSEID NUMBER PRIMARY KEY,
+COURSENAME VARCHAR(255)
+)
+
+=q1=
+
+CREATE OR REPLACE PROCEDURE GetStudentInfoById (
+    pStudentId IN NUMBER,
+    pStudentInfo OUT STUDENTRESULTS%ROWTYPE
+) AS
+BEGIN
+    SELECT *
+    INTO pStudentInfo
+    FROM STUDENTRESULTS
+    WHERE STUDENTID = pStudentId;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Student with ID ' || pStudentId || ' not found.');
+END GetStudentInfoById;
+/
+
+DECLARE
+    vStudentId NUMBER := 1;
+    vStudentInfo STUDENTRESULTS%ROWTYPE;
+BEGIN
+    GetStudentInfoById(vStudentId, vStudentInfo);
+    
+    IF vStudentInfo.STUDENTID IS NOT NULL THEN
+        DBMS_OUTPUT.PUT_LINE('StudentID: ' || vStudentInfo.STUDENTID);
+        DBMS_OUTPUT.PUT_LINE('Semester: ' || vStudentInfo.SEMESTER);
+    END IF;
+END;
+/
+
+
+begin
+INSERT INTO STUDENTRESULTS (STUDENTID, SEMESTER, SUB1, SUB2, SUB3, SUB4, SUB5, PERCENTAGE, GRADE, COURSEID)
+VALUES (1, 1, 85, 78, 92, 88, 91, 88.8, 'PASS', 101);
+
+INSERT INTO STUDENTRESULTS (STUDENTID, SEMESTER, SUB1, SUB2, SUB3, SUB4, SUB5, PERCENTAGE, GRADE, COURSEID)
+VALUES (2, 1, 77, 84, 90, 79, 86, 83.2, 'PASS', 101);
+
+INSERT INTO STUDENTRESULTS (STUDENTID, SEMESTER, SUB1, SUB2, SUB3, SUB4, SUB5, PERCENTAGE, GRADE, COURSEID)
+VALUES (3, 1, 92, 88, 95, 91, 89, 91.0, 'FAIL', 101);
+
+
+INSERT INTO COURSE (COURSEID, COURSENAME)
+VALUES (101, 'Math');
+
+INSERT INTO COURSE (COURSEID, COURSENAME)
+VALUES (102, 'Science');
+end
+
+
+
+=q2=
+CREATE OR REPLACE PROCEDURE a2q2(
+    tempid IN NUMBER,
+    temp OUT number
+) AS
+BEGIN
+    SELECT count(*) into temp
+    FROM STUDENTRESULTS
+    WHERE COURSEID= tempid ;
+
+END a2q2;
+/
+
+
+
+
+
+DECLARE
+    vCourseId NUMBER := 101; 
+    vTotalStudents NUMBER;
+BEGIN
+    a2q2(vCourseId, vTotalStudents);
+    DBMS_OUTPUT.PUT_LINE('Total students for CourseID ' || vCourseId || ': ' || vTotalStudents);
+END;
+/
+
+=q3=
+CREATE OR REPLACE PROCEDURE GetTotalStudentsByCourseName (
+    pCourseName IN VARCHAR2,
+    pTotalStudents OUT NUMBER
+) AS
+BEGIN
+SELECT COUNT(*) INTO pTotalStudents 
+FROM STUDENTRESULTS
+WHERE COURSEID IN (
+    SELECT COURSEID
+    FROM COURSE
+    WHERE COURSENAME = pCourseName 
+);
+END GetTotalStudentsByCourseName;
+/
+
+
+DECLARE
+    vCourseName VARCHAR2(255) := 'Math'; 
+    vTotalStudents NUMBER;
+BEGIN
+    GetTotalStudentsByCourseName(vCourseName, vTotalStudents);
+
+    -- Display the total number of students for the course
+    DBMS_OUTPUT.PUT_LINE('Total students for Course Name ' || vCourseName || ': ' || vTotalStudents);
+END;
+/
+
+
+=q4=
+CREATE OR REPLACE PROCEDURE GetStudentsByGrade (
+    pGrade IN VARCHAR
+) AS
+cursor temp_cur is select * from STUDENTRESULTS  where GRADE = PGrade;
+BEGIN
+    for data in temp_cur loop
+       dbms_output.put_line('Id : '|| data.STUDENTID );
+    end loop;
+END ;
+
+BEGIN
+    GetStudentsByGrade('PASS');
+END;
+/
+
+=5=
+CREATE OR REPLACE PROCEDURE GetStudentsBySemester (
+    temp IN NUMBER
+) AS
+cursor temp_cur is select * from STUDENTRESULTS  where SEMESTER = temp;
+BEGIN
+    for data in temp_cur loop
+       dbms_output.put_line('Id : '|| data.STUDENTID );
+    end loop;
+END ;
+
+
+BEGIN
+    GetStudentsBySemester (1);
+END;
+/
+
+
+=6=
+CREATE OR REPLACE PROCEDURE GetStudentsBySemesterGrade (
+    temp1 IN NUMBER,
+    temp2 IN VARCHAR
+) AS
+cursor temp_cur is select * from STUDENTRESULTS  where SEMESTER = temp1 and GRADE = temp2;
+BEGIN
+    for data in temp_cur loop
+       dbms_output.put_line('Id : '|| data.STUDENTID );
+    end loop;
+END ;
+
+
+BEGIN
+    GetStudentsBySemesterGrade  (1,'PASS');
+END;
+/
+
+=7=
+CREATE OR REPLACE PROCEDURE GetStudentsBySemesterGrade (
+    temp1 IN NUMBER,
+    temp2 IN VARCHAR,
+    temp3 IN VARCHAR
+) AS
+cursor temp_cur is select * from STUDENTRESULTS  where SEMESTER = temp1 and GRADE = temp2 and COURSEID = (SELECT COURSEID FROM COURSE WHERE COURSENAME = temp3); 
+BEGIN
+    for data in temp_cur loop
+       dbms_output.put_line('Id : '|| data.STUDENTID );
+    end loop;
+END ;
+
+
+BEGIN
+    GetStudentsBySemesterGrade  (1,'PASS','Math');
+END;
+/
+
+=8=
+CREATE OR REPLACE PROCEDURE GetCountBySemester (
+    temp1 IN NUMBER,
+    temp2 out number
+) AS
+
+BEGIN
+select count(*) into temp2 from STUDENTRESULTS where SEMESTER = temp1;
+END ;
+
+DECLARE
+temp number;
+BEGIN
+    GetCountBySemester  (1,temp);
+    DBMS_OUTPUT.PUT_LINE('COUNT : '||temp);
+END;
+/
+
+=9=
+CREATE OR REPLACE PROCEDURE GetCountBySemesterGrade (
+    temp1 IN NUMBER,
+    temp2 out number,
+   temp3 VARCHAR
+
+) AS
+
+BEGIN
+select count(*) into temp2 from STUDENTRESULTS where SEMESTER = temp1 and GRADE = temp3;
+END ;
+
+DECLARE
+temp number;
+BEGIN
+    GetCountBySemesterGrade   (1,temp,'PASS');
+    DBMS_OUTPUT.PUT_LINE('COUNT : '||temp);
+END;
+/
+
+select * from STUDENTRESULTS  
+
+=10=
+CREATE OR REPLACE PROCEDURE GetCountByPASSFAIL (
+    temp2 out number,
+   temp3 OUT number 
+) AS
+BEGIN
+select count(*) into temp2 from STUDENTRESULTS WHERE GRADE = 'PASS';
+select count(*) into temp3 from STUDENTRESULTS WHERE GRADE = 'FAIL';
+END ;
+
+DECLARE
+temp1 number;
+temp2 number;
+BEGIN
+    GetCountByPASSFAIL    (temp1,temp2);
+    DBMS_OUTPUT.PUT_LINE('PASS COUNT : '||temp1||'FAIL COUNT : '||temp2);
+END;
+
+
